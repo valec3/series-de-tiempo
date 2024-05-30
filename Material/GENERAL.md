@@ -66,7 +66,7 @@ legend(x = "bottomright", legend = c("Yts", "Yts_ma", "Yma2"), col = c('black', 
 'blue'), lty = c(1, 1))
 ```
 
-## Suavizamiento Exponencial Simple y Doble
+## Suavizamiento Exponencial Simple, doble, holt y holt-winters
 
 ```R
 datos <- read_excel("D:/ … /Ejem_2_3.xlsx")
@@ -176,6 +176,7 @@ Yc_pacf$acf # Muestra los valores del correlograma parcial
 # # No estacionario: El fast de crecimiento lento el
 
 # 2. Prueba de raiz unitaria
+# 2. Prueba de raiz unitaria
 # a) Prueba de  Dickey - Fuller
 Yc_df <- ur.df(Yc, type = "drift", lags = 0)
 summary(Yc_df)
@@ -244,6 +245,53 @@ plot(decomp$seasonal)
 # RESIDUOS o ALEATORIEDAD
 plot(decomp$random)
 
+```
+
+## DESCOMPOSICIÓN Y ANÁLISIS DE COMPONENTES - Tendencia
+
+```R
+
+# Cargar datos desde Excel
+serie <- read_excel("C:/Users/JHONYNANI/Downloads/Ejm_3_3.xlsx")
+# Crear serie de tiempo
+Yt <- ts(serie$Y, start = c(1984, 3), frequency = 4)
+# Graficar la serie de tiempo
+plot(Yt,xlab = "Años")
+
+# Descomposicion MULTIPICATIVA
+Yt_decomp <- decompose(Yt, type = "multiplicative")
+plot(Yt_decomp)
+
+
+serie <- read_excel("D:/.../Ejm_3_3.xlsx")
+View(serie)
+Yts <- ts(serie$Y, start = c(1984,3), frequency = 4)
+print(Yts)
+plot(Yts, type = "l", xlab="Años", ylab="Y")
+# Ajuste a un modelo lineal
+t <- time(Yts)
+Ylm <- lm(Yts ~ t) # Modelo lineal simple Y = a + b*t
+pron = ts(predict(Ylm, t), c(1984,3), frequency = 4)
+plot(Yts, xlab="Años", ylab=" ")
+lines(pron, type = "l", col = "red")
+legend(x = "bottomright", legend = c("Yts", "Ylm"), col = c('black', 'red'), lty = c(1,1))
+
+# Ajuste Cuadrático
+Y2 <- lm(Yts ~ t + I(t^2))
+pron2 = ts(predict(Y2, t), c(1984,3), frequency = 4)
+plot(Yts, xlab="Años", ylab=" ")
+lines(pron2, type = "l", col = "red")
+legend(x = "bottomright", legend = c("Yts", "Y2"), col = c('black', 'red'), lty = c(1, 1))
+
+# Ajuste a un Exponencial
+nt <- 1:32 # Número de trimestres o datos de la serie
+Ye <- lm(log(Yts) ~ nt)
+Ye
+Y3 <- Ye$coefficients[1] + Ye$coefficients[2]*nt
+pron3 = exp(Y3)
+plot(serie$Y, type = "l", xlab="Tiempo", ylab=" ")
+lines(pron3, type = "l", col = "red")
+legend(x = "bottomright", legend = c("Y", "Y3"), col = c('black', 'red'), lty = c(1, 1))
 ```
 
 ## MODELOS ARMA
