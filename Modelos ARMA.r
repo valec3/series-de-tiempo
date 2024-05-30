@@ -9,7 +9,7 @@ library(ggplot2)  # Graficos
 library(dplyr)	# Manipulacion de datos
 
 # importacion de datos con el nombre "datos"
-
+datos = read.csv("F:/777--Programacion repos/Una/r/data/Ejem_2_3.csv")
 #Grafica de la serie
 
 Y <- ts(datos$Yt, start = 1, frequency = 1)
@@ -24,6 +24,8 @@ FAS <- pacf(Y, lag.max = 16, main = "FAP", level = 0.95)
 # Prueba de raiz unitaria
 Y_ru <- ur.df(Y, type = "drift", lags = 1)
 summary(Y_ru)
+
+
 
 # ESTACIONARIEDAD EN VARIANZA
 # Diagrama de cajas "boxplot"
