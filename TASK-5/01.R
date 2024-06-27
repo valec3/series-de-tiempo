@@ -155,13 +155,13 @@ FAP <- pacf(data_diff, lag.max = 15, main="FAP - data diferenciada", level = 0.9
 
 
 
-mod1 <- Arima(data_mod, order = c(3, 2, 0), include.constant = TRUE)
+mod1 <- Arima(data_ts, order = c(3, 2, 0), include.constant = T)
 coeftest(mod1)
 
-mod2 <- Arima(data_mod, order = c(0, 2, 1), include.constant = T)
+mod2 <- Arima(data_ts, order = c(0, 2, 1), include.constant = T)
 coeftest(mod2)
 
-mod3 <- Arima(data_mod, order = c(1, 2, 2), include.constant = T)
+mod3 <- Arima(data_ts, order = c(1, 2, 2), include.constant = T)
 coeftest(mod3)
 
 
@@ -176,13 +176,13 @@ autoplot(mod2)
 autoplot(mod3)
 
 #Analisis de estabilidad
-Chow_mod1 <- Fstats(mod1$fitted ~ 1, from = 0.67)
+Chow_mod1 <- Fstats(mod1$fitted ~ 1, from = 0.60,to=0.70)
 sctest(Chow_mod1)
 
-Chow_mod2 <- Fstats(mod2$fitted ~ 1, from = 0.67)
+Chow_mod2 <- Fstats(mod2$fitted ~ 1, from = 0.60,to=0.70)
 sctest(Chow_mod2)
 
-Chow_mod3 <- Fstats(mod3$fitted ~ 1, from = 0.67)
+Chow_mod3 <- Fstats(mod3$fitted ~ 1, from = 0.60,to=0.70)
 sctest(Chow_mod3)
 
 
@@ -224,13 +224,13 @@ bptest(resid(mod3)~I(obs-resid(mod3)))
 resid_m1 <- as.vector(mod1$residuals)
 resid_m2 <- as.vector(mod2$residuals)
 resid_m3 <- as.vector(mod3$residuals)
-par(mfrow = c(1,1))
+par(mfrow = c(3,1))
 FAS_e.m1 <- acf(resid_m1, lag.max = 25,
-                main="FAS Modelo 1", level = 0.95)
+                main="FAS Modelo 1")
 FAS_e.m2 <- acf(resid_m2, lag.max = 25,
-                main="FAS Modelo 2", level = 0.95)
+                main="FAS Modelo 2")
 FAS_e.m3 <- acf(resid_m3, lag.max = 25,
-                main="FAS Modelo 3", level = 0.95)
+                main="FAS Modelo 3")
 
 
 
@@ -273,7 +273,7 @@ summary(Pron1)
 #serie original y valores estimados
 
 par(mfrow = c(1,1))
-data_modelo1 <- exp(mod1$fitted)
+data_modelo1 <- (mod1$fitted)
 grafico_comparativo <- cbind(data_ts,data_modelo1)
 ts.plot(grafico_comparativo, col=c(1,2), lwd = 1)
 legend("topleft",c("yt","yest"),lty = c(1,1), lwd = 2,col=c("black", "red"))
@@ -289,10 +289,10 @@ Pron1$residuals <- exp(Pron1$residuals)
 summary(Pron1)
 
 #GRÁFICA DEL AJUSTE Y PRONÓSTICO CON VALORES REALES
-plot(Pron1, shaded = FALSE, xlab = "Años", ylab = "Intereses pagados",main = "ARIMA(1,1,0)")
+plot(Pron1, shaded = FALSE, xlab = "Años", ylab = "IPC",main = "ARIMA(1,1,0)")
 lines(Pron1$fitted, col = "red")
 legend("topleft", legend=c("SERIE", "PREDICCION", "INTERVALO DE COINFIANZA AL 95%", "AJUSTE"),col=c("black", "blue", "black", "red"), lty=c(1,1,2,1), lwd = 2,cex = 0.6)
-abline(v=2013, lwd = 1, col="green")
+abline(v=2006.7, lwd = 1, col="green")
 
 
 
@@ -304,10 +304,10 @@ summary(Pron2)
 
 #serie original y valores estimados
 
-yt_arima2 <- exp(mod2$fitted)
-grafico_comparativo <- cbind(Yt,yt_arima2)
+data_modelo2 <- (mod2$fitted)
+grafico_comparativo <- cbind(data_ts,data_modelo2)
 ts.plot(grafico_comparativo, col=c(1,2), lwd = 1)
-legend("topleft",c("yt","yest"),lty = c(1,1), lwd = 2)
+legend("topleft",c("yt","yest"),lty = c(1,1), lwd = 2,col=c("black", "red"))
 
 #pronostico para la serie original YT
 #deshacer la transformacion
@@ -320,10 +320,10 @@ Pron2$residuals <- exp(Pron2$residuals)
 summary(Pron2)
 
 #GRÁFICA DEL AJUSTE Y PRONÓSTICO CON VALORES REALES
-plot(Pron2, shaded = FALSE, xlab = "Meses", ylab = "",main = "ARIMA(0,1,5)")
+plot(Pron2, shaded = FALSE, xlab = "Meses", ylab = "",main = "ARIMA(0,2,1)")
 lines(Pron2$fitted, col = "red")
 legend("topleft", legend=c("SERIE", "PREDICCION", "INTERVALO DE COINFIANZA AL 95%", "AJUSTE"),col=c("black", "blue", "black", "red"), lty=c(1,1,2,1), lwd = 2,cex = 0.6)
-abline(v=2013, lwd = 1, col="green")
+abline(v=2006.7, lwd = 1, col="green")
 
 
 
@@ -335,10 +335,10 @@ summary(Pron3)
 
 #serie original y valores estimados
 
-yt_arima3 <- exp(mod3$fitted)
-grafico_comparativo <- cbind(Yt,yt_arima1)
+data_modelo3 <- (mod3$fitted)
+grafico_comparativo <- cbind(data_ts,data_modelo3)
 ts.plot(grafico_comparativo, col=c(1,2), lwd = 1)
-legend("topleft",c("yt","yest"),lty = c(1,1), lwd = 2)
+legend("topleft",c("yt","yest"),lty = c(1,1), lwd = 2,col=c("black", "red"))
 
 #pronostico para la serie original YT
 #deshacer la transformacion
@@ -352,10 +352,10 @@ Pron3$residuals <- exp(Pron3$residuals)
 summary(Pron3)
 
 #GRÁFICA DEL AJUSTE Y PRONÓSTICO CON VALORES REALES
-plot(Pron3, shaded = FALSE, xlab = "Años", ylab = "Intereses pagados",main = "ARIMA(1,1,2)")
+plot(Pron3, shaded = FALSE, xlab = "Años", ylab = "IPC",main = "ARIMA(1,1,2)")
 lines(Pron3$fitted, col = "red")
 legend("topleft", legend=c("SERIE", "PREDICCION", "INTERVALO DE COINFIANZA AL 95%", "AJUSTE"),col=c("black", "blue", "black", "red"), lty=c(1,1,2,1), lwd = 2,cex = 0.6)
-abline(v=2013, lwd = 1, col="green")
+abline(v=2006.7, lwd = 1, col="green")
 
 
 
