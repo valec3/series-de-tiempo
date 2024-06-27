@@ -14,21 +14,21 @@ library(mFilter)
 library(readxl)
 library(fitdistrplus)
 
-data <- read_excel("F:\\777--Programacion repos\\Una\\r\\data\\actividad-05.xlsx",sheet = "2")
+data <- read_excel("F:\\777--Programacion repos\\Una\\r\\data\\actividad-05.xlsx",sheet = "1")
 View(data)
 # Gráfica de la serie
-data_ts <- ts(data$interes, start = c(1999,1), frequency = 4)
-plot(data_ts, xlab="Trimestres", ylab="Interes pagados")
+data_ts <- ts(data$interes, start = c(1999,1), frequency = 12)
+plot(data_ts, xlab="Meses", ylab="IPC")
 
 
 #Descomposición de la serie
-data_des <- decompose(data_ts, type = "multiplicative")
+data_des <- decompose(data_ts, type = "additive")
 plot(data_des,type="l")
 
 #Graficos de la serie para identificar estacionalidad
-plot1 <- ggsubseriesplot(data_ts, xlab = "Trimestres", ylab = "Interes pagados")
-plot2 <- ggseasonplot(data_ts, xlab = "Trimestres", ylab = "Interes pagados")
-plot3 <- ggAcf(data_ts, xlab = "Trimestres", ylab = "Interes pagados")
+plot1 <- ggsubseriesplot(data_ts, xlab = "Meses", ylab = "IPC")
+plot2 <- ggseasonplot(data_ts, xlab = "Meses", ylab = "IPC")
+plot3 <- ggAcf(data_ts, xlab = "Meses", ylab = "IPC")
 
 grid.arrange(plot1, plot2, plot3, ncol = 1)
 
@@ -42,50 +42,103 @@ plot(data_hp)
 #Estacionaridad en varianza
 Grupo <- rep(1:7, each = 8)
 boxplot(data$interes ~ Grupo, xlab = "Grupo", ylab="Yt")
-
+boxplot(data$IPC ~ data$Año, xlab = "AÑOS/MESES", ylab="IPC",
+main="Distribucion" )
 b <- BoxCox.ar(data_ts)
 lambda <- b$mle
 round(lambda,1)
 
-qqnorm(data_ts, main = "Lambda = 1") # Yt: Original
+qqplot_Yt <- qqnorm(Yt, main = "lambda = 1")
+qqline(Yt, col = "red")
+
+par(mfrow = c(3,2))
+#lambda  = 1 <- yt
+qqnorm(data_ts,main="lambda = 1")
 qqline(data_ts)
 
-data_mod = log(data_ts)
-qqnorm(data_mod, main = "Lambda = 0") # Yt: Original
-qqline(data_mod)
+
+#lambda =2 <- yt^2
+t1.yt <- data_ts^2
+qqnorm(t1.yt, main="lambda = 2")
+qqline(t1.yt)
+
+#lambda = 0.5 <- aiz(YT)
+t3.yt <- sqrt(data_ts)
+qqnorm(t3.yt, main="lambda = 0.5")
+qqline(t3.yt)
+
+#lambda  =  0 <- log(Yt)
+
+t4.yt <- log(data_ts)
+qqnorm(t4.yt, main="lambda = 0")
+qqline(t4.yt)
+
+
+t5.yt <- 1/sqrt(data_ts)
+qqnorm(t5.yt, main="lambda = -0.5")
+qqline(t5.yt)
+
+#lambda  =  -1 <- 1/Yt
+
+t6.yt <- 1/data_ts
+qqnorm(t6.yt, main="lambda = -1")
+qqline(t6.yt)
+
+
+#lambda  = -2 <- 1/(Yt^2)
+t7.yt <- 1/(data_ts^2)
+qqnorm(t7.yt, main="lambda = -2")
+qqline(t7.yt)
 
 
 
-boxplot(data_mod ~ Grupo, xlab = "Grupo", ylab="log(Yt)")
-plot(data_mod, xlab="Trimestres", ylab="log(Yt)")
 
-
-
-par(mfrow = c(1,2))
-FAS <- acf(data_ts, lag.max = 15, main="FAS - log(Yt)")
-FAP <- pacf(data_ts, lag.max = 15, main="FAP - log(Yt)")
+par(mfrow = c(1,1))
+FAS <- acf(data_ts, lag.max = 15, main="FAS - Yt")
+FAP <- pacf(data_ts, lag.max = 15, main="FAP - Yt")
+FAP$acf[1]
 
 
 
 # Verificación con la prueba de Raíz unitaria de Dickey-Fuller Aumentada.
-data_adf <- ur.df(data_mod, type="trend", lags = 1)
+data_adf <- ur.df(data_ts, type="trend", lags = 1)
 summary(data_adf)
 
 #DIFERENCIACION POR NO ESTACIONARIEDAD
 
-data_diff = diff(data_mod)
-plot(data_diff, xlab="Trimestres", ylab="Interes pagados")
+data_diff = diff(data_ts)
+plot(data_diff, xlab="Meses", ylab="IPC")
 abline(h = mean(data_diff), col = "red")
 
-data_adf <- ur.df(data_diff, type="drift", lags = 1)
+par(mfrow = c(1,2))
+FAS <- acf(data_diff, lag.max = 15, main="FAS - diff Yt")
+FAP <- pacf(data_diff, lag.max = 15, main="FAP - diff Yt")
+FAP$acf[1]
+
+data_adf <- ur.df(data_diff, type="trend", lags = 1)
+summary(data_adf)
+
+# segunda diferenciacion
+par(mfrow = c(1,1))
+data_diff2 = diff(data_diff)
+plot(data_diff2, xlab="Meses", ylab="IPC")
+abline(h = mean(data_diff2), col = "red")
+
+par(mfrow = c(1,2))
+FAS <- acf(data_diff2, lag.max = 15, main="FAS - 2da diff Yt")
+FAP <- pacf(data_diff2, lag.max = 15, main="FAP - 2da diff Yt")
+FAP$acf[1]
+data_adf <- ur.df(data_diff2, type="drift", lags = 1)
 summary(data_adf)
 
 
 
+
+
 #incluir el intercepto
-Z <- mean(data_diff)
-Co <- var(data_diff)
-Tn <- length(data_diff)
+Z <- mean(data_diff2)
+Co <- var(data_diff2)
+Tn <- length(data_diff2)
 Ta <- Tn - 1
 Sigma <- Co/Ta
 t <- Z/Sigma
@@ -102,13 +155,13 @@ FAP <- pacf(data_diff, lag.max = 15, main="FAP - data diferenciada", level = 0.9
 
 
 
-mod1 <- Arima(data_mod, order = c(1, 1, 0), include.constant = T)
+mod1 <- Arima(data_mod, order = c(3, 2, 0), include.constant = TRUE)
 coeftest(mod1)
 
-mod2 <- Arima(data_mod, order = c(0, 1, 5), include.constant = T)
+mod2 <- Arima(data_mod, order = c(0, 2, 1), include.constant = T)
 coeftest(mod2)
 
-mod3 <- Arima(data_mod, order = c(1, 1, 2), include.constant = T)
+mod3 <- Arima(data_mod, order = c(1, 2, 2), include.constant = T)
 coeftest(mod3)
 
 
@@ -267,7 +320,7 @@ Pron2$residuals <- exp(Pron2$residuals)
 summary(Pron2)
 
 #GRÁFICA DEL AJUSTE Y PRONÓSTICO CON VALORES REALES
-plot(Pron2, shaded = FALSE, xlab = "Trimestres", ylab = "",main = "ARIMA(0,1,5)")
+plot(Pron2, shaded = FALSE, xlab = "Meses", ylab = "",main = "ARIMA(0,1,5)")
 lines(Pron2$fitted, col = "red")
 legend("topleft", legend=c("SERIE", "PREDICCION", "INTERVALO DE COINFIANZA AL 95%", "AJUSTE"),col=c("black", "blue", "black", "red"), lty=c(1,1,2,1), lwd = 2,cex = 0.6)
 abline(v=2013, lwd = 1, col="green")
