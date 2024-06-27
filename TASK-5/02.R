@@ -57,6 +57,7 @@ qqline(data_mod)
 
 
 boxplot(data_mod ~ Grupo, xlab = "Grupo", ylab="log(Yt)")
+plot(data_mod, xlab="Trimestres", ylab="log(Yt)")
 
 
 
@@ -115,11 +116,13 @@ vcov(mod1)
 vcov(mod2)
 vcov(mod3)
 
+
+#Convergencia e invertibilidad
 autoplot(mod1)
 autoplot(mod2)
 autoplot(mod3)
 
-
+#Analisis de estabilidad
 Chow_mod1 <- Fstats(mod1$fitted ~ 1, from = 0.67)
 sctest(Chow_mod1)
 
@@ -144,12 +147,14 @@ abline(h = 0, col = "red")
 t.test(mod3$residuals, mu = 0)
 
 
+
+# Homocedasticidad o varianza constante  
 par(mfrow = c(3,1))
 scatter.smooth(sqrt(abs(mod1$residuals)), lpars=list(col=2), main = "Modelo 1")
 scatter.smooth(sqrt(abs(mod2$residuals)), lpars=list(col=2), main = "Modelo 2")
 scatter.smooth(sqrt(abs(mod3$residuals)), lpars=list(col=2), main = "Modelo 3")
 
-
+#Prueba de Breusch - Pagan
 obs=get(mod1$series)
 bptest(resid(mod1)~I(obs-resid(mod1)))
 
@@ -162,7 +167,7 @@ bptest(resid(mod3)~I(obs-resid(mod3)))
 
 
 
-
+#Correlograma de los residuos
 resid_m1 <- as.vector(mod1$residuals)
 resid_m2 <- as.vector(mod2$residuals)
 resid_m3 <- as.vector(mod3$residuals)
@@ -175,10 +180,15 @@ FAS_e.m3 <- acf(resid_m3, lag.max = 25,
                 main="FAS Modelo 3", level = 0.95)
 
 
+
+
 Box.test(resid_m1,type = "Ljung-Box")
 Box.test(resid_m2,type = "Ljung-Box")
 Box.test(resid_m3,type = "Ljung-Box")
 
+
+
+#Prueba de normalidad
 ajuste_m1<-fitdist(data = resid_m1, distr="norm")
 plot(ajuste_m1)
 JB_m1 <- jarque.bera.test(resid_m1)
@@ -209,10 +219,11 @@ summary(Pron1)
 
 #serie original y valores estimados
 
-yt_arima1 <- exp(modelo1$fitted)
-grafico_comparativo <- cbind(Yt,yt_arima1)
+par(mfrow = c(1,1))
+data_modelo1 <- exp(mod1$fitted)
+grafico_comparativo <- cbind(data_ts,data_modelo1)
 ts.plot(grafico_comparativo, col=c(1,2), lwd = 1)
-legend("topleft",c("yt","yest"),lty = c(1,1), lwd = 2)
+legend("topleft",c("yt","yest"),lty = c(1,1), lwd = 2,col=c("black", "red"))
 
 #pronostico para la serie original YT
 #deshacer la transformacion
@@ -225,20 +236,22 @@ Pron1$residuals <- exp(Pron1$residuals)
 summary(Pron1)
 
 #GRÁFICA DEL AJUSTE Y PRONÓSTICO CON VALORES REALES
-plot(Pron1, shaded = FALSE, xlab = "Años", ylab = "N° DE PIELES",main = "ARIMA(3,0,0)")
+plot(Pron1, shaded = FALSE, xlab = "Años", ylab = "Intereses pagados",main = "ARIMA(1,1,0)")
 lines(Pron1$fitted, col = "red")
 legend("topleft", legend=c("SERIE", "PREDICCION", "INTERVALO DE COINFIANZA AL 95%", "AJUSTE"),col=c("black", "blue", "black", "red"), lty=c(1,1,2,1), lwd = 2,cex = 0.6)
-abline(v=1930, lwd = 1, col="green")
+abline(v=2013, lwd = 1, col="green")
+
+
 
 # modelo 2
 #pronostico de la serie  zt
-Pron2 <- forecast(modelo2,level=c(95),h=10)
+Pron2 <- forecast(mod2,level=c(95),h=10)
 plot(Pron2)
 summary(Pron2)
 
 #serie original y valores estimados
 
-yt_arima2 <- exp(modelo2$fitted)
+yt_arima2 <- exp(mod2$fitted)
 grafico_comparativo <- cbind(Yt,yt_arima2)
 ts.plot(grafico_comparativo, col=c(1,2), lwd = 1)
 legend("topleft",c("yt","yest"),lty = c(1,1), lwd = 2)
@@ -254,22 +267,22 @@ Pron2$residuals <- exp(Pron2$residuals)
 summary(Pron2)
 
 #GRÁFICA DEL AJUSTE Y PRONÓSTICO CON VALORES REALES
-plot(Pron2, shaded = FALSE, xlab = "Años", ylab = "N° DE PIELES",main = "ARIMA(0,0,2)")
+plot(Pron2, shaded = FALSE, xlab = "Trimestres", ylab = "",main = "ARIMA(0,1,5)")
 lines(Pron2$fitted, col = "red")
 legend("topleft", legend=c("SERIE", "PREDICCION", "INTERVALO DE COINFIANZA AL 95%", "AJUSTE"),col=c("black", "blue", "black", "red"), lty=c(1,1,2,1), lwd = 2,cex = 0.6)
-abline(v=1930, lwd = 1, col="green")
+abline(v=2013, lwd = 1, col="green")
 
 
 
 # modelo 3
 #pronostico de la serie  zt
-Pron3 <- forecast(modelo3,level=c(95),h=10)
+Pron3 <- forecast(mod3,level=c(95),h=10)
 plot(Pron3)
 summary(Pron3)
 
 #serie original y valores estimados
 
-yt_arima3 <- exp(modelo3$fitted)
+yt_arima3 <- exp(mod3$fitted)
 grafico_comparativo <- cbind(Yt,yt_arima1)
 ts.plot(grafico_comparativo, col=c(1,2), lwd = 1)
 legend("topleft",c("yt","yest"),lty = c(1,1), lwd = 2)
@@ -286,7 +299,7 @@ Pron3$residuals <- exp(Pron3$residuals)
 summary(Pron3)
 
 #GRÁFICA DEL AJUSTE Y PRONÓSTICO CON VALORES REALES
-plot(Pron3, shaded = FALSE, xlab = "Años", ylab = "N° DE PIELES",main = "ARIMA(2,0,1)")
+plot(Pron3, shaded = FALSE, xlab = "Años", ylab = "N° DE PIELES",main = "ARIMA(1,1,2)")
 lines(Pron3$fitted, col = "red")
 legend("topleft", legend=c("SERIE", "PREDICCION", "INTERVALO DE COINFIANZA AL 95%", "AJUSTE"),col=c("black", "blue", "black", "red"), lty=c(1,1,2,1), lwd = 2,cex = 0.6)
 abline(v=1930, lwd = 1, col="green")
