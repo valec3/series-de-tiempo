@@ -1,0 +1,198 @@
+---
+title: "Análisis y Pronóstico del Producto Bruto Interno (PBI) en millones de US\$ utilizando Modelos ARIMA"
+author: "victor"
+date: "2024-07-19"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r message=FALSE, warning=FALSE}
+library(forecast)# mdelos ARIMA
+library(tseries) # series de tiempo 
+library(TSA)   
+library(urca)    # prueba de raises unitarias 
+library(ggplot2) # graficos 
+library(dplyr)  
+library(lmtest)  #Inferencia para los coeficientes 
+library(MASS)    #Tranformacion de box.cox
+library(nortest) #pruebas de normalidad
+library(mFilter) #filtro de jodric prescot (p-h)
+library(strucchange)    # analisis de estabilidad    http://127.0.0.1:29089/graphics/plot_zoom_png?width=941&height=778
+library(fitdistrplus)
+library(readxl)
+library(TSstudio)
+```
+
+
+
+# 1 Identificación
+\hfill 3
+
+```{r cargar_Datos, message=FALSE, warning=FALSE} 
+
+datos <- read_excel("F:\\777--Programacion repos\\Una\\r\\Final Work\\Trimestral-20240719-074511.xlsx")
+View(datos)
+Yt <- ts(datos$PBI, start = c(2011, 1), frequency = 4)     
+plot(Yt, xlab = "Año", ylab ="Yt" ) 
+
+```
+Figure 1. Muestra el grafico de lineas de la serie de tiempo del Producto Bruto Interno (PBI) en millones de US\$ en el periodo 2011-2024. El eje x representa los años y el eje y las ventas en millones de US\$.
+Viendo inicialmente la grafica parece haber una tendencia y una estacionalidad, por lo que se procede a realizar un análisis de la tendencia y la estacionalidad.
+
+## 1.1 Análisis de la tendencia y la estacionalidad
+```{r}
+#Estacionalidad
+ggsubseriesplot(Yt, xlab = "Años", ylab = "Ventas" )   
+ggseasonplot(Yt, xlab = "Años",ylab = "Ventas" )   
+ggAcf(Yt, xlab = "Años", ylab = "Ventas")
+
+```
+
+Dado las graficas la serie aparenta ligeramten ser estacional, por lo que analizara mas en detalle al plantear los modelos 
+### 1.1.1 Estacionalidad
+
+```{r}
+
+```
+
+
+### 1.1.2 Análisis de tendencia
+```{r}
+lambda_hp <- 1600 
+data_hp <- hpfilter(Yt, type="lambda", freq=lambda_hp)
+plot(data_hp)
+```
+
+**Hay una clara tendencia**
+
+## 1.2 Análisis de estacionariedad
+
+### 1.2.1 Estacionariedad en varianza
+
+```{r}
+boxplot(datos$PBI ~ datos$YEAR, xlab = "Año", ylab="Yt")
+
+b <- BoxCox.ar(Yt)
+lambda <- b$mle
+round(lambda,2)
+Zt = Yt^2
+par(mfrow = c(1,2))
+plot(Yt, xlab = "Años", ylab ="PBI" )
+plot(Zt, xlab = "Años", ylab ="PBI^2" ) 
+```
+**Aun realizando una transformación de Box-Cox no se logra estacionarizar la varianza, por lo que decidimos NO transformar la serie**
+
+
+### 1.2.2 Estacionariedad en media
+***PARTE REGULAR***
+```{r}
+data_adf <- ur.df(Yt, lags = 1)
+summary(data_adf)
+
+par(mfrow = c(1,2))
+FAS <- acf(Yt,lag.max = 25, main = "FAS") 
+FAP <- pacf(Yt, lag.max = 25, main = "FAP") 
+
+```
+```{r}
+Yt_diff <- diff(Yt)
+plot(Yt_diff, xlab = "Año", ylab ="Yt_diff" ) 
+
+adf_Yt_diff <- ur.df(Yt_diff, lags = 1)
+summary(adf_Yt_diff)
+
+par(mfrow = c(1,2))
+FAS_diff <- acf(Yt_diff,lag.max = 25, main = "FAS_diff")
+FAP_diff <- pacf(Yt_diff, lag.max = 25, main = "FAP_diff")
+```
+
+***PARTE ESTACIONAL***
+```{r}
+adf_Yt_4 <- ur.df(Yt, lags = 4)
+summary(adf_Yt_4)
+
+Yt_diff_4 <- diff(Yt, lag = 4)
+adf_Yt_diff_4 <- ur.df(Yt_diff_4, lags = 4)
+summary(adf_Yt_diff_4)
+plot(Yt_diff_4, xlab = "Año", ylab ="Yt_diff_4" )
+```
+
+
+## 1.3 Identificación del modelo estacionario
+\hfill 11
+
+### 1.3.1 Identificación de las órdenes p y q
+\hfill 11
+
+# 2 Estimación
+```{r}
+mod1 = arima(Yt, order = c(1,1,1), seasonal =list(order = c(1,0,0)))
+coeftest(mod1)
+```
+
+
+# 3 Validación
+\hfill 12
+
+## 3.1 Análisis de los coeficientes estimados
+\hfill 12
+
+### 3.1.1 Significación de los coeficientes
+\hfill 12
+
+### 3.1.2 Examen de la matriz de correlaciones entre los coeficientes
+\hfill 12
+
+### 3.1.3 Condición de convergencia e invertibilidad
+\hfill 13
+
+## 3.2 Análisis de los residuos
+\hfill 14
+
+### 3.2.1 Prueba de Ljung-Box
+\hfill 14
+
+### 3.2.2 Homocedasticidad o varianza constante
+\hfill 16
+
+### 3.2.3 Contraste de normalidad
+\hfill 17
+
+# 4 Pronóstico
+\hfill 19
+
+## 4.1 Pronósticos de cada modelo
+\hfill 19
+
+### Modelo 1:
+\hfill 19
+
+### Modelo 2:
+\hfill 20
+
+### Modelo 3:
+\hfill 21
+
+## Serie original (YT) y pronosticada
+\hfill 22
+
+## Gráfica del ajuste y pronóstico con valores reales
+\hfill 24
+
+## Métricas basadas en el error
+\hfill 26
+
+## AIC y BIC
+\hfill 26
+
+# Conclusión: Elección del Modelo SARIMA
+\hfill 26
+
+## Modelos Evaluados:
+\hfill 26
+
+## Elección del Mejor Modelo:
+\hfill 27

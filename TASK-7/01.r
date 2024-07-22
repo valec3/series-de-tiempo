@@ -1,17 +1,23 @@
-# Libreria necesaria
+# Librerias necesaria
 library(forecast) # Modelo ARIMA
 library(tseries) # Para series de tiempo
 library(TSA) # Para series de tiempo
-library(urca) # Para hacer el Test de Raiz Unitaria (detectar hay o no estacionariedad)library(ggplot2) # Para hacer gráficos
-library(dplyr) # Para la manipulación de datos (filtrar, seleccionar, agregar, transformar)library(lmtest) # Inferencia para coeficientes estimados
+library(urca) # Raiz Unitaria 
+library(ggplot2) # Para hacer gráficos
+library(gridExtra)
+library(dplyr) # Para la manipulación de datos
+library(lmtest) # Inferencia para coeficientes estimados
 library(MASS) # Transformacion de Box-Cox
 library(nortest) # Pruebas de normalidad
-library(TSstudio) # Correlograma parte regular y estacional
+library(strucchange) # Cambio estructural - Test de Chow
+library(mFilter)
+library(readxl)
+library(fitdistrplus)
 
-data <- read_excel("F:\\777--Programacion repos\\Una\\r\\data\\actividad-06.xlsx",sheet = "01")
+data <- read_excel("F:\\777--Programacion repos\\Una\\r\\data\\actividad-07.xlsx",sheet = "s01")
 View(data)
 # Gráfica de la serie
-data_ts <- ts(data$Yt, start = c(1872,1), frequency = 1)
+data_ts <- ts(data$Producción, start = c(1961,1), frequency = 1)
 plot(data_ts, xlab="Años", ylab="PRODUCCIÓN DE TABACO")
 
 #Haciendo un analisis inicial podemos ver una clara tendencia creciente y a su vez la serie no aparenta ser estacionaria
@@ -264,7 +270,8 @@ Box.test(resid_m2,type = "Ljung-Box")
 Box.test(resid_m3,type = "Ljung-Box")
 
 
-
+###########################
+###########################
 #Prueba de normalidad
 ajuste_m1<-fitdist(data = resid_m1, distr="norm")
 plot(ajuste_m1)
@@ -280,6 +287,8 @@ ajuste_m3<-fitdist(data = resid_m3, distr="norm")
 plot(ajuste_m3)
 JB_m3 <- jarque.bera.test(resid_m3)
 JB_m3
+###########################
+###########################
 
 
 
