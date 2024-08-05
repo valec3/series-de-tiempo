@@ -35,23 +35,22 @@ library(TSstudio)
 
 datos <- read_excel("F:\\777--Programacion repos\\Una\\r\\Final Work\\Trimestral-20240719-074511.xlsx")
 View(datos)
-Yt <- ts(datos$PBI, start = c(2011, 1), frequency = 4)     
+Yt <- ts(datos$PBI, start = c(2012, 1), frequency = 4)     
 plot(Yt, xlab = "Año", ylab ="Yt" ) 
 
 ```
-Figure 1. Muestra el grafico de lineas de la serie de tiempo del Producto Bruto Interno (PBI) en millones de US\$ en el periodo 2011-2024. El eje x representa los años y el eje y las ventas en millones de US\$.
-Viendo inicialmente la grafica parece haber una tendencia y una estacionalidad, por lo que se procede a realizar un análisis de la tendencia y la estacionalidad.
+Figure 1.Esta fase se inició con el gráfico lineal de la serie histórica trimestral del Producto Bruto Interno (millones  de  USD),  entre  los  periodos  comprendidos  del  1er  trimestre  del  2012  al  1er trimestre  del  2024, observándose  en  la  Fig.1 un  comportamiento  de  tendencia  ascendente, además de variabilidad no constante debido al pico comprendido entre el año 2018 y 2020, por lo tanto, la serie en cuestión es no estacionaria.
 
 ## 1.1 Análisis de la tendencia y la estacionalidad
 ```{r}
 #Estacionalidad
 ggsubseriesplot(Yt, xlab = "Años", ylab = "Ventas" )   
 ggseasonplot(Yt, xlab = "Años",ylab = "Ventas" )   
-ggAcf(Yt, xlab = "Años", ylab = "Ventas")
+ggAcf(Yt, xlab = "Años", ylab = "Ventas",lag = 50)
 
 ```
 
-Dado las graficas la serie aparenta ligeramten ser estacional, por lo que analizara mas en detalle al plantear los modelos 
+Seguido de ello, se procedió a realizar el análisis de estacionalidad, en el cual se observa en la Fig.2, que la serie no presenta un comportamiento estacional, ya que no se observa un patrón repetitivo en los datos, por lo tanto, no se puede concluir que la serie posea estacionalidad.
 ### 1.1.1 Estacionalidad
 
 ```{r}
@@ -114,10 +113,13 @@ FAP_diff <- pacf(Yt_diff, lag.max = 25, main = "FAP_diff")
 adf_Yt_4 <- ur.df(Yt, lags = 4)
 summary(adf_Yt_4)
 
-Yt_diff_4 <- diff(Yt, lag = 4)
+Yt_diff_4 <- diff(Yt, 4)
 adf_Yt_diff_4 <- ur.df(Yt_diff_4, lags = 4)
 summary(adf_Yt_diff_4)
-plot(Yt_diff_4, xlab = "Año", ylab ="Yt_diff_4" )
+
+Yt_diff_4_2 <- diff(Yt_diff_4)
+adf_Yt_diff_4_2 <- ur.df(Yt_diff_4_2, lags = 4)
+summary(adf_Yt_diff_4_2)
 ```
 
 
@@ -125,12 +127,33 @@ plot(Yt_diff_4, xlab = "Año", ylab ="Yt_diff_4" )
 \hfill 11
 
 ### 1.3.1 Identificación de las órdenes p y q
-\hfill 11
+```{r}
+ts_cor(Yt, lag = 20)
+ts_cor(Yt_diff_4, lag = 50)
+
+
+FAS <- acf(Yt_diff,lag.max = 25, main = "FAS") 
+FAP <- pacf(Yt_diff, lag.max = 25, main = "FAP") 
+```
+
 
 # 2 Estimación
 ```{r}
-mod1 = arima(Yt, order = c(1,1,1), seasonal =list(order = c(1,0,0)))
+mod1 = Arima(Yt, order = c(1,1,3))
 coeftest(mod1)
+
+mod2 <- Arima(Yt, order = c(0,1,1))
+coeftest(mod5)
+
+mod3 <- Arima(Yt, order = c(1,1,1), seasonal = list(order = c(0,2,1)))
+coeftest(mod2)
+
+mod4 <- Arima(Yt, order = c(1,1,1), seasonal = list(order = c(0,2,2)))
+coeftest(mod3)
+
+mod5 <- Arima(Yt, order = c(1,1,1), seasonal = list(order = c(1,0,0)))
+coeftest(mod4)
+
 ```
 
 
@@ -150,13 +173,34 @@ coeftest(mod1)
 \hfill 13
 
 ## 3.2 Análisis de los residuos
-\hfill 14
+```{r}
+# Analisis de los residuos 
+plot(mod1$residuals, main = "Modulo 1" )
+```
+
 
 ### 3.2.1 Prueba de Ljung-Box
 \hfill 14
 
 ### 3.2.2 Homocedasticidad o varianza constante
-\hfill 16
+```{r}
+obs=get(mod1$series)
+bptest(resid(mod1)~I(obs-resid(mod1)))
+
+obs=get(mod2$series)
+bptest(resid(mod2)~I(obs-resid(mod2)))
+
+obs=get(mod3$series)
+bptest(resid(mod3)~I(obs-resid(mod3)))
+
+obs=get(mod4$series)
+bptest(resid(mod4)~I(obs-resid(mod4)))
+
+obs=get(mod5$series)
+bptest(resid(mod5)~I(obs-resid(mod5)))
+
+```
+
 
 ### 3.2.3 Contraste de normalidad
 \hfill 17
@@ -168,7 +212,23 @@ coeftest(mod1)
 \hfill 19
 
 ### Modelo 1:
-\hfill 19
+```{r}
+Pron1 <- forecast(mod1, level=c(95),h=8)
+accuracy(Pron1)
+
+Pron2 <- forecast(mod2, h = 8)
+summary(Pron2)
+
+Pron3 <- forecast(mod3, h = 8)
+summary(Pron3)
+
+Pron4 <- forecast(mod4, h = 8)
+summary(Pron4)
+
+Pron5 <- forecast(mod5, h = 8)
+summary(Pron5)
+```
+
 
 ### Modelo 2:
 \hfill 20

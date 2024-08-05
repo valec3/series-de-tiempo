@@ -167,6 +167,7 @@ autoplot(mod2)
 autoplot(mod3)
 
 # Generar un modelo respecto a una constante
+# Nos ayudara a ver si los coeficientes son estables
 # test de chow 
 Chow_mod1 <- Fstats(mod1$fitted ~ 1, from = 0.36)
 sctest(Chow_mod1)
